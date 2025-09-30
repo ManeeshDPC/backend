@@ -1,6 +1,5 @@
 import pool from '../config/db/mysql.js';
 
-// Add a new review
 export async function addReview(req, res) {
   const { companyId, userId, rating, reviewText } = req.body;
 
@@ -13,19 +12,16 @@ export async function addReview(req, res) {
   }
 
   try {
-    // Insert review
     await pool.execute(
       'INSERT INTO reviews (company_id, user_id, rating, review_text) VALUES (?, ?, ?, ?)',
       [companyId, userId, rating, reviewText]
     );
 
-    // Update company aggregated data: average rating and review_count
     const [result] = await pool.execute(
       `SELECT AVG(rating) AS avgRating, COUNT(*) AS totalReviews FROM reviews WHERE company_id = ?`,
       [companyId]
     );
     
-    // Handle null avgRating (when no reviews exist)
     const avgRating = result[0].avgRating ? parseFloat(result[0].avgRating).toFixed(2) : 0;
     const totalReviews = result[0].totalReviews;
 
@@ -41,7 +37,6 @@ export async function addReview(req, res) {
   }
 }
 
-// Get all reviews for a company with user info
 export async function getReviewsByCompany(req, res) {
   const companyId = req.params.companyId;
 
@@ -65,7 +60,6 @@ export async function getReviewsByCompany(req, res) {
   }
 }
 
-// Get all reviews by a specific user
 export async function getReviewsByUser(req, res) {
   const userId = req.params.userId;
 
@@ -88,7 +82,6 @@ export async function getReviewsByUser(req, res) {
     res.status(500).json({ error: 'Error fetching user reviews' });
   }
 }
-// Delete a review
 export async function deleteReview(req, res) {
   const reviewId = req.params.reviewId;
   const { userId } = req.body;
@@ -102,7 +95,6 @@ export async function deleteReview(req, res) {
   }
 
   try {
-    // Check if the review exists and belongs to the user
     const [reviewCheck] = await pool.execute(
       'SELECT user_id, company_id FROM reviews WHERE id = ?',
       [reviewId]
@@ -112,17 +104,14 @@ export async function deleteReview(req, res) {
       return res.status(404).json({ error: 'Review not found' });
     }
 
-    // Check if the review belongs to the user
     if (reviewCheck[0].user_id !== userId) {
       return res.status(403).json({ error: 'You can only delete your own reviews' });
     }
 
     const companyId = reviewCheck[0].company_id;
 
-    // Delete the review
     await pool.execute('DELETE FROM reviews WHERE id = ?', [reviewId]);
 
-    // Update company rating and review count
     const [result] = await pool.execute(
       `SELECT AVG(rating) AS avgRating, COUNT(*) AS totalReviews FROM reviews WHERE company_id = ?`,
       [companyId]

@@ -19,7 +19,6 @@ app.use(express.json());
 
 app.use(passport.initialize());
 
-// Mount all routers
 app.use('/api/auth', authRouter);
 app.use('/api', userRouter);
 app.use('/api', companyRouter);

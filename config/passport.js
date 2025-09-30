@@ -35,7 +35,6 @@ passport.use(
             is_confirmed: 1,
           };
         } else {
-          // Link google ID if missing
           if (!user.google_id) {
             await pool.query(
               "UPDATE users SET google_id = ?, provider = 'google' WHERE id = ?",
@@ -44,7 +43,6 @@ passport.use(
             user.google_id = googleId;
             user.provider = "google";
           }
-          // Confirm user if google provider and not confirmed
           if (user.provider === "google" && !user.is_confirmed) {
             await pool.query("UPDATE users SET is_confirmed = TRUE WHERE id = ?", [
               user.id,

@@ -24,7 +24,6 @@ const sendConfirmationEmail = async (email, token, name) => {
   }
 };
 
-// Registration - takes only email & name, sends confirmation email
 export const register = async (req, res) => {
   const { email, name } = req.body;
 
@@ -42,7 +41,6 @@ export const register = async (req, res) => {
       if (user.is_confirmed) {
         return res.status(400).json({ error: 'User already exists and is confirmed' });
       } else {
-        // Re-send confirmation email with new token
         const token = generateToken();
         const expiresAt = expirationDate();
         await pool.query(
@@ -58,7 +56,6 @@ export const register = async (req, res) => {
       }
     }
 
-    // New user, create with no password, unconfirmed
     const token = generateToken();
     const expiresAt = expirationDate();
 
@@ -80,7 +77,6 @@ export const register = async (req, res) => {
   }
 };
 
-// Set password after email confirmation using the token then login
 export const setPassword = async (req, res) => {
   const { token, password } = req.body;
   if (!token || !password) return res.status(400).json({ error: 'Token and password are required' });
@@ -113,7 +109,6 @@ export const setPassword = async (req, res) => {
   }
 };
 
-// Login with email and password
 export const login = async (req, res) => {
   const { email, password } = req.body;
   console.log('Request body on login:', req.body);
@@ -160,7 +155,6 @@ export const login = async (req, res) => {
   }
 };
 
-// Confirm email by token - just marks user as confirmed, no password setup here
 export const confirmEmail = async (req, res) => {
   const { token } = req.query;
   if (!token) {
@@ -176,9 +170,6 @@ export const confirmEmail = async (req, res) => {
     if (rows.length === 0) {
       return res.status(400).json({ error: 'Invalid or expired confirmation token' });
     }
-
-    // Keep user unconfirmed here, wait for password setup via setPassword endpoint
-
     res.json({
       success: true,
       message: 'Email token valid. Please set your password to complete registration.',
@@ -189,8 +180,6 @@ export const confirmEmail = async (req, res) => {
   }
 };
 
-
-// Resend confirmation email for unconfirmed users
 export const resendConfirmation = async (req, res) => {
   const { email } = req.body;
   if (!email) {
